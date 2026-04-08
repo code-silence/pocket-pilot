@@ -45,9 +45,13 @@ dependencies:
 
   flutter_local_notifications: ^17.2.3
   timezone: ^0.9.4
-  
+
   #shared preferences for storing user settings
   shared_preferences: ^2.2.3
+
+  # For adding a splash screen
+  flutter_native_splash: ^2.3.9  # ← add this
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -67,6 +71,10 @@ dev_dependencies:
   hive_generator: ^2.0.1
   build_runner: ^2.4.9
 
+  # For generating app icons
+  flutter_launcher_icons: ^0.13.1  # ← add this
+
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -77,6 +85,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/icon/
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -108,3 +119,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#2E7D32"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/icon/app_icon.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/icon/app_icon.png
+  fullscreen: true
