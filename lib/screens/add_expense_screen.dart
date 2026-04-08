@@ -38,9 +38,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-            ),
+            colorScheme: const ColorScheme.light(primary: AppColors.primary),
           ),
           child: child!,
         );
@@ -49,6 +47,73 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     if (picked != null) {
       setState(() => _selectedDate = picked);
     }
+  }
+
+  void _showSuccessAnimation() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (ctx, animation, secondaryAnimation) {
+        // auto close after 1.2 seconds
+        Future.delayed(const Duration(milliseconds: 1200), () {
+          if (ctx.mounted) Navigator.pop(ctx);
+        });
+
+        return FadeTransition(
+          opacity: animation,
+          child: Align(
+            alignment: const Alignment(0, -0.3),
+            child: Material(
+              color: Colors.transparent,
+              child: ScaleTransition(
+                scale: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.elasticOut,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Expense Saved!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _saveExpense() {
@@ -76,13 +141,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       _selectedDate = DateTime.now();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Expense saved!'),
-        backgroundColor: AppColors.primary,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    _showSuccessAnimation();
   }
 
   @override
@@ -117,7 +176,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Enter an amount';
                   if (double.tryParse(v) == null) return 'Enter a valid number';
-                  if (double.parse(v) <= 0) return 'Amount must be greater than 0';
+                  if (double.parse(v) <= 0)
+                    return 'Amount must be greater than 0';
                   return null;
                 },
               ),
@@ -149,7 +209,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primary
@@ -164,9 +226,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       child: Text(
                         cat,
                         style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : AppColors.primary,
+                          color: isSelected ? Colors.white : AppColors.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -185,7 +245,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 onTap: _pickDate,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
@@ -201,8 +263,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                           color: AppColors.textDark,
                         ),
                       ),
-                      const Icon(Icons.calendar_today,
-                          color: AppColors.primary, size: 20),
+                      const Icon(
+                        Icons.calendar_today,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -237,10 +302,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   ),
                   child: const Text(
                     'Save Expense',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

@@ -6,6 +6,8 @@ import '../utils/constants.dart';
 import 'notification_screen.dart';
 import 'insights_screen.dart';
 import '../providers/budget_provider.dart';
+import '../utils/page_transitions.dart';
+import '../widgets/count_up_text.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -47,10 +49,12 @@ class DashboardScreen extends ConsumerWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const InsightsScreen()),
+                SlideUpPageRoute(page: const InsightsScreen()), // ← changed
               );
             },
           ),
+
+          //-----notification icon button----
           IconButton(
             icon: const Icon(
               Icons.notifications_outlined,
@@ -59,7 +63,7 @@ class DashboardScreen extends ConsumerWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                SlideUpPageRoute(page: const NotificationScreen()), // ← changed
               );
             },
           ),
@@ -127,8 +131,9 @@ class DashboardScreen extends ConsumerWidget {
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '৳ ${totalSpent.toStringAsFixed(2)}',
+                    CountUpText(
+                      value: totalSpent,
+                      prefix: '৳ ',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 36,
@@ -482,221 +487,210 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _monthlySummaryCard(
-  WidgetRef ref,
-  List monthExpenses,
-  double totalSpent,
-  DateTime now,
-) {
-  final budget = ref.watch(budgetProvider);
-  final monthlyLimit = budget?.monthlyLimit ?? 0;
-  final savingsGoal = budget?.savingsGoal ?? 0;
-  final remaining = monthlyLimit - totalSpent;
-  final savedSoFar = remaining > 0 ? remaining : 0.0;
-  final budgetProgress = monthlyLimit == 0
-      ? 0.0
-      : (totalSpent / monthlyLimit).clamp(0.0, 1.0);
-  final savingsProgress = savingsGoal == 0
-      ? 0.0
-      : (savedSoFar / savingsGoal).clamp(0.0, 1.0);
-  final daysInMonth =
-      DateTime(now.year, now.month + 1, 0).day;
-  final daysLeft = daysInMonth - now.day;
+    WidgetRef ref,
+    List monthExpenses,
+    double totalSpent,
+    DateTime now,
+  ) {
+    final budget = ref.watch(budgetProvider);
+    final monthlyLimit = budget?.monthlyLimit ?? 0;
+    final savingsGoal = budget?.savingsGoal ?? 0;
+    final remaining = monthlyLimit - totalSpent;
+    final savedSoFar = remaining > 0 ? remaining : 0.0;
+    final budgetProgress = monthlyLimit == 0
+        ? 0.0
+        : (totalSpent / monthlyLimit).clamp(0.0, 1.0);
+    final savingsProgress = savingsGoal == 0
+        ? 0.0
+        : (savedSoFar / savingsGoal).clamp(0.0, 1.0);
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final daysLeft = daysInMonth - now.day;
 
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.3)),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Title row ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Monthly Summary',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$daysLeft days left',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
 
-        // ── Title row ──
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Monthly Summary',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+          const SizedBox(height: 16),
+
+          // ── Stats row ──
+          Row(
+            children: [
+              Expanded(
+                child: _summaryItem(
+                  label: 'Spent',
+                  value: '৳ ${totalSpent.toStringAsFixed(0)}',
+                  icon: Icons.arrow_upward,
+                  color: Colors.redAccent,
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
+              Container(
+                width: 1,
+                height: 40,
+                color: AppColors.accent.withValues(alpha: 0.3),
               ),
-              child: Text(
-                '$daysLeft days left',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: _summaryItem(
+                  label: 'Saved',
+                  value: '৳ ${savedSoFar.toStringAsFixed(0)}',
+                  icon: Icons.savings,
                   color: AppColors.primary,
                 ),
               ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // ── Stats row ──
-        Row(
-          children: [
-            Expanded(
-              child: _summaryItem(
-                label: 'Spent',
-                value: '৳ ${totalSpent.toStringAsFixed(0)}',
-                icon: Icons.arrow_upward,
-                color: Colors.redAccent,
+              Container(
+                width: 1,
+                height: 40,
+                color: AppColors.accent.withValues(alpha: 0.3),
               ),
-            ),
-            Container(
-              width: 1,
-              height: 40,
-              color: AppColors.accent.withValues(alpha: 0.3),
-            ),
-            Expanded(
-              child: _summaryItem(
-                label: 'Saved',
-                value: '৳ ${savedSoFar.toStringAsFixed(0)}',
-                icon: Icons.savings,
-                color: AppColors.primary,
-              ),
-            ),
-            Container(
-              width: 1,
-              height: 40,
-              color: AppColors.accent.withValues(alpha: 0.3),
-            ),
-            Expanded(
-              child: _summaryItem(
-                label: 'Transactions',
-                value: '${monthExpenses.length}',
-                icon: Icons.receipt_long,
-                color: AppColors.primaryLight,
-              ),
-            ),
-          ],
-        ),
-
-        // ── Budget progress ──
-        if (monthlyLimit > 0) ...[
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Budget used',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
-                ),
-              ),
-              Text(
-                '${(budgetProgress * 100).toInt()}%  of  ৳ ${monthlyLimit.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+              Expanded(
+                child: _summaryItem(
+                  label: 'Transactions',
+                  value: '${monthExpenses.length}',
+                  icon: Icons.receipt_long,
+                  color: AppColors.primaryLight,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: budgetProgress,
-              minHeight: 7,
-              backgroundColor:
-                  AppColors.accent.withValues(alpha: 0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                budgetProgress >= 1.0
-                    ? Colors.red
-                    : budgetProgress >= 0.7
-                        ? Colors.orange
-                        : AppColors.primary,
-              ),
-            ),
-          ),
-        ],
 
-        // ── Savings progress ──
-        if (savingsGoal > 0) ...[
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Savings goal',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+          // ── Budget progress ──
+          if (monthlyLimit > 0) ...[
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Budget used',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                 ),
-              ),
-              Text(
-                '${(savingsProgress * 100).toInt()}%  of  ৳ ${savingsGoal.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+                Text(
+                  '${(budgetProgress * 100).toInt()}%  of  ৳ ${monthlyLimit.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: savingsProgress,
-              minHeight: 7,
-              backgroundColor:
-                  AppColors.accent.withValues(alpha: 0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary),
+              ],
             ),
-          ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: budgetProgress,
+                minHeight: 7,
+                backgroundColor: AppColors.accent.withValues(alpha: 0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  budgetProgress >= 1.0
+                      ? Colors.red
+                      : budgetProgress >= 0.7
+                      ? Colors.orange
+                      : AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+
+          // ── Savings progress ──
+          if (savingsGoal > 0) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Savings goal',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+                Text(
+                  '${(savingsProgress * 100).toInt()}%  of  ৳ ${savingsGoal.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: savingsProgress,
+                minHeight: 7,
+                backgroundColor: AppColors.accent.withValues(alpha: 0.2),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColors.primary,
+                ),
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  // ── Summary item ──
+  Widget _summaryItem({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+        ),
       ],
-    ),
-  );
-}
-
-// ── Summary item ──
-Widget _summaryItem({
-  required String label,
-  required String value,
-  required IconData icon,
-  required Color color,
-}) {
-  return Column(
-    children: [
-      Icon(icon, color: color, size: 18),
-      const SizedBox(height: 6),
-      Text(
-        value,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          color: AppColors.textMuted,
-        ),
-      ),
-    ],
-  );
-}
+    );
+  }
 }

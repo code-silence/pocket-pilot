@@ -265,7 +265,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      return _ExpenseCard(expense: filtered[index]);
+                      return _AnimatedExpenseCard(
+                        index: index,
+                        child: _ExpenseCard(expense: filtered[index]),
+                      );
                     },
                   ),
           ),
@@ -463,6 +466,71 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           },
         );
       },
+    );
+  }
+}
+
+// ----── Animated wrapper for expense cards ──----------
+class _AnimatedExpenseCard extends StatefulWidget {
+  final int index;
+  final Widget child;
+
+  const _AnimatedExpenseCard({
+    required this.index,
+    required this.child,
+  });
+
+  @override
+  State<_AnimatedExpenseCard> createState() => _AnimatedExpenseCardState();
+}
+
+class _AnimatedExpenseCardState extends State<_AnimatedExpenseCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // stagger delay based on index
+    Future.delayed(Duration(milliseconds: widget.index * 60), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: widget.child,
+      ),
     );
   }
 }
