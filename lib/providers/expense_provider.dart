@@ -29,6 +29,11 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     _loadExpenses();
   }
 
+ void deleteAll() {
+    _box.clear();
+    _loadExpenses();
+  }
+  
   double get totalSpent {
     return state.fold(0.0, (sum, e) => sum + e.amount);
   }
@@ -111,6 +116,8 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     if (dayTotals.isEmpty) return 'N/A';
     return dayTotals.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
+
+ 
 
   int get totalTransactionsThisMonth => thisMonthExpenses.length;
 }

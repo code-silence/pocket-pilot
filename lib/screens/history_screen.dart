@@ -18,16 +18,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   String _selectedCategory = 'All';
   String _selectedPeriod = 'All time';
 
-  final List<String> _categories = [
-    'All',
-    ...AppCategories.all,
-  ];
+  final List<String> _categories = ['All', ...AppCategories.all];
 
-  final List<String> _periods = [
-    'All time',
-    'This week',
-    'This month',
-  ];
+  final List<String> _periods = ['All time', 'This week', 'This month'];
 
   @override
   void dispose() {
@@ -41,10 +34,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     return expenses.where((e) {
       // Search filter
-      final matchesSearch = _searchQuery.isEmpty ||
+      final matchesSearch =
+          _searchQuery.isEmpty ||
           e.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          (e.note?.toLowerCase().contains(_searchQuery.toLowerCase()) ??
-              false);
+          (e.note?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
 
       // Category filter
       final matchesCategory =
@@ -53,13 +46,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       // Period filter
       bool matchesPeriod = true;
       if (_selectedPeriod == 'This week') {
-        final weekStart =
-            now.subtract(Duration(days: now.weekday - 1));
+        final weekStart = now.subtract(Duration(days: now.weekday - 1));
         matchesPeriod = e.date.isAfter(
-            weekStart.subtract(const Duration(days: 1)));
+          weekStart.subtract(const Duration(days: 1)),
+        );
       } else if (_selectedPeriod == 'This month') {
-        matchesPeriod =
-            e.date.month == now.month && e.date.year == now.year;
+        matchesPeriod = e.date.month == now.month && e.date.year == now.year;
       }
 
       return matchesSearch && matchesCategory && matchesPeriod;
@@ -83,10 +75,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
+        actions: [
+          if (expenses.isNotEmpty)
+            IconButton(
+              icon: const Icon(
+                Icons.delete_sweep_outlined,
+                color: Colors.redAccent,
+              ),
+              onPressed: () => _confirmDeleteAll(context, ref, expenses.length),
+            ),
+        ],
       ),
       body: Column(
         children: [
-
           // ── Search bar ──
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -96,8 +97,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               decoration: InputDecoration(
                 hintText: 'Search expenses...',
                 hintStyle: const TextStyle(color: Colors.grey),
-                prefixIcon:
-                    const Icon(Icons.search, color: AppColors.primary),
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.grey),
@@ -120,7 +120,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(
-                      color: AppColors.primary, width: 1.5),
+                    color: AppColors.primary,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -137,17 +139,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 final cat = _categories[index];
                 final isSelected = _selectedCategory == cat;
                 return GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedCategory = cat),
+                  onTap: () => setState(() => _selectedCategory = cat),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.surface,
+                      color: isSelected ? AppColors.primary : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
@@ -158,9 +159,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     child: Text(
                       cat,
                       style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.primary,
+                        color: isSelected ? Colors.white : AppColors.primary,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -184,31 +183,27 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 final period = _periods[index];
                 final isSelected = _selectedPeriod == period;
                 return GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedPeriod = period),
+                  onTap: () => setState(() => _selectedPeriod = period),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.accent
-                          : AppColors.surface,
+                      color: isSelected ? AppColors.accent : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.accent
-                            : AppColors.accent
-                                .withValues(alpha: 0.4),
+                            : AppColors.accent.withValues(alpha: 0.4),
                       ),
                     ),
                     child: Text(
                       period,
                       style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textMuted,
+                        color: isSelected ? Colors.white : AppColors.textMuted,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -280,7 +275,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   Widget _buildEmpty() {
-    final hasFilters = _searchQuery.isNotEmpty ||
+    final hasFilters =
+        _searchQuery.isNotEmpty ||
         _selectedCategory != 'All' ||
         _selectedPeriod != 'All time';
 
@@ -289,9 +285,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            hasFilters
-                ? Icons.search_off
-                : Icons.receipt_long_outlined,
+            hasFilters ? Icons.search_off : Icons.receipt_long_outlined,
             size: 72,
             color: AppColors.accent,
           ),
@@ -336,6 +330,141 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       ),
     );
   }
+
+  void _confirmDeleteAll(BuildContext context, WidgetRef ref, int count) {
+    final confirmController = TextEditingController();
+    bool isTypedCorrectly = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text(
+                    'Delete All?',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'This will permanently delete all $count expenses. This action cannot be undone.',
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Type DELETE to confirm:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: confirmController,
+                    onChanged: (val) {
+                      setDialogState(() {
+                        isTypedCorrectly = val == 'DELETE';
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Type DELETE here',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isTypedCorrectly
+                              ? Colors.redAccent
+                              : AppColors.accent,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isTypedCorrectly
+                              ? Colors.redAccent
+                              : AppColors.accent,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isTypedCorrectly
+                              ? Colors.redAccent
+                              : AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.textMuted),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isTypedCorrectly
+                      ? () {
+                          // delete all expenses
+                          final expenses = ref.read(expenseProvider);
+                          for (final expense in expenses) {
+                            ref
+                                .read(expenseProvider.notifier)
+                                .deleteExpense(expense.id);
+                          }
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('All expenses deleted'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        }
+                      : null, // disabled until typed correctly
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.red.withValues(alpha: 0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Delete All'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 // ── Expense Card ──────────────────────────────────────────
@@ -356,8 +485,7 @@ class _ExpenseCard extends ConsumerWidget {
           color: Colors.red.shade400,
           borderRadius: BorderRadius.circular(16),
         ),
-        child:
-            const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
       confirmDismiss: (_) async {
         return await _confirmDelete(context);
@@ -377,12 +505,13 @@ class _ExpenseCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border:
-              Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+          border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
         ),
         child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           leading: _categoryIcon(expense.category),
           title: Text(
             expense.title,
@@ -447,8 +576,11 @@ class _ExpenseCard extends ConsumerWidget {
         color: (data['color'] as Color).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(data['icon'] as IconData,
-          color: data['color'] as Color, size: 22),
+      child: Icon(
+        data['icon'] as IconData,
+        color: data['color'] as Color,
+        size: 22,
+      ),
     );
   }
 
@@ -476,15 +608,9 @@ class _ExpenseCard extends ConsumerWidget {
       case 'Food':
         return {'icon': Icons.restaurant, 'color': AppColors.food};
       case 'Transport':
-        return {
-          'icon': Icons.directions_bus,
-          'color': AppColors.transport
-        };
+        return {'icon': Icons.directions_bus, 'color': AppColors.transport};
       case 'Shopping':
-        return {
-          'icon': Icons.shopping_bag,
-          'color': AppColors.shopping
-        };
+        return {'icon': Icons.shopping_bag, 'color': AppColors.shopping};
       case 'Health':
         return {'icon': Icons.favorite, 'color': AppColors.health};
       case 'Education':
@@ -498,25 +624,26 @@ class _ExpenseCard extends ConsumerWidget {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Expense?'),
         content: const Text('This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textMuted)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.white)),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -525,8 +652,9 @@ class _ExpenseCard extends ConsumerWidget {
 
   void _showEditSheet(BuildContext context, WidgetRef ref, Expense expense) {
     final titleController = TextEditingController(text: expense.title);
-    final amountController =
-        TextEditingController(text: expense.amount.toString());
+    final amountController = TextEditingController(
+      text: expense.amount.toString(),
+    );
     final noteController = TextEditingController(text: expense.note ?? '');
     String selectedCategory = expense.category;
     DateTime selectedDate = expense.date;
@@ -547,8 +675,7 @@ class _ExpenseCard extends ConsumerWidget {
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -592,12 +719,14 @@ class _ExpenseCard extends ConsumerWidget {
                       children: AppCategories.all.map((cat) {
                         final isSelected = selectedCategory == cat;
                         return GestureDetector(
-                          onTap: () => setSheetState(
-                              () => selectedCategory = cat),
+                          onTap: () =>
+                              setSheetState(() => selectedCategory = cat),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 8),
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppColors.primary
@@ -638,8 +767,8 @@ class _ExpenseCard extends ConsumerWidget {
                           final updated = Expense(
                             id: expense.id,
                             title: titleController.text.trim(),
-                            amount: double.tryParse(
-                                    amountController.text.trim()) ??
+                            amount:
+                                double.tryParse(amountController.text.trim()) ??
                                 expense.amount,
                             category: selectedCategory,
                             date: selectedDate,
@@ -668,7 +797,9 @@ class _ExpenseCard extends ConsumerWidget {
                         child: const Text(
                           'Update Expense',
                           style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold),
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
