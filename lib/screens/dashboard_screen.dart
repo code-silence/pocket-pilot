@@ -8,6 +8,8 @@ import 'insights_screen.dart';
 import '../providers/budget_provider.dart';
 import '../utils/page_transitions.dart';
 import '../widgets/count_up_text.dart';
+import '../providers/month_provider.dart';
+import '../widgets/month_navigator.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -18,18 +20,26 @@ class DashboardScreen extends ConsumerWidget {
     final notifier = ref.read(expenseProvider.notifier);
 
     final now = DateTime.now();
-    final monthExpenses = expenses
-        .where((e) => e.date.month == now.month && e.date.year == now.year)
-        .toList();
-
-    final totalSpent = monthExpenses.fold(0.0, (sum, e) => sum + e.amount);
-    final categoryTotals = notifier.categoryTotals;
+    final selectedMonth = ref.watch(monthProvider);
+    final monthExpenses = notifier.expensesForMonth(selectedMonth);
+    final totalSpent = notifier.totalForMonth(selectedMonth);
+    final categoryTotals = notifier.categoryTotalsForMonth(selectedMonth);
     final topCategory = categoryTotals.isEmpty
         ? 'None'
         : categoryTotals.entries
               .reduce((a, b) => a.value > b.value ? a : b)
               .key;
-    final avgDaily = monthExpenses.isEmpty ? 0.0 : totalSpent / now.day;
+    final avgDaily = monthExpenses.isEmpty
+        ? 0.0
+        : totalSpent /
+              (selectedMonth.month == now.month &&
+                      selectedMonth.year == now.year
+                  ? now.day
+                  : DateTime(
+                      selectedMonth.year,
+                      selectedMonth.month + 1,
+                      0,
+                    ).day);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -107,13 +117,15 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // ── Monthly summary card ──
               _monthlySummaryCard(ref, monthExpenses, totalSpent, now),
 
               const SizedBox(height: 16),
+
+              // ── Month navigator ──
+              const MonthNavigator(),
 
               // ── Total spent card ──
               Container(

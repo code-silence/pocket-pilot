@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../providers/expense_provider.dart';
 import '../utils/constants.dart';
+import '../providers/month_provider.dart';
+import '../widgets/month_navigator.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -29,21 +31,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   // ── Filter logic ──
-  List<Expense> _filterExpenses(List<Expense> expenses) {
+  List<Expense> _filterExpenses(
+    List<Expense> expenses,
+    DateTime selectedMonth,
+  ) {
     final now = DateTime.now();
 
     return expenses.where((e) {
-      // Search filter
       final matchesSearch =
           _searchQuery.isEmpty ||
           e.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           (e.note?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
 
-      // Category filter
       final matchesCategory =
           _selectedCategory == 'All' || e.category == _selectedCategory;
 
-      // Period filter
       bool matchesPeriod = true;
       if (_selectedPeriod == 'This week') {
         final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -51,7 +53,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           weekStart.subtract(const Duration(days: 1)),
         );
       } else if (_selectedPeriod == 'This month') {
-        matchesPeriod = e.date.month == now.month && e.date.year == now.year;
+        matchesPeriod =
+            e.date.month == selectedMonth.month &&
+            e.date.year == selectedMonth.year;
+      } else {
+        // All time — still filter by selected month
+        matchesPeriod =
+            e.date.month == selectedMonth.month &&
+            e.date.year == selectedMonth.year;
       }
 
       return matchesSearch && matchesCategory && matchesPeriod;
@@ -61,8 +70,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final expenses = ref.watch(expenseProvider);
-    final filtered = _filterExpenses(expenses);
-
+    final selectedMonth = ref.watch(monthProvider);
+    final filtered = _filterExpenses(expenses, selectedMonth);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -88,6 +97,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       ),
       body: Column(
         children: [
+          // ── Month navigator ──
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: MonthNavigator(),
+          ),
           // ── Search bar ──
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -475,10 +489,7 @@ class _AnimatedExpenseCard extends StatefulWidget {
   final int index;
   final Widget child;
 
-  const _AnimatedExpenseCard({
-    required this.index,
-    required this.child,
-  });
+  const _AnimatedExpenseCard({required this.index, required this.child});
 
   @override
   State<_AnimatedExpenseCard> createState() => _AnimatedExpenseCardState();
@@ -506,10 +517,7 @@ class _AnimatedExpenseCardState extends State<_AnimatedExpenseCard>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     // stagger delay based on index
     Future.delayed(Duration(milliseconds: widget.index * 60), () {
@@ -527,10 +535,7 @@ class _AnimatedExpenseCardState extends State<_AnimatedExpenseCard>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: widget.child,
-      ),
+      child: SlideTransition(position: _slideAnimation, child: widget.child),
     );
   }
 }

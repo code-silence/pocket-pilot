@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/expense_provider.dart';
 import '../utils/constants.dart';
+import '../providers/month_provider.dart';
+import '../widgets/month_navigator.dart';
 
 class AnalyticsScreen extends ConsumerStatefulWidget {
   const AnalyticsScreen({super.key});
@@ -16,12 +18,13 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedMonth = ref.watch(monthProvider);
     final notifier = ref.read(expenseProvider.notifier);
-    final categoryTotals = notifier.thisMonthCategoryTotals;
-    final thisMonthTotal = notifier.thisMonthTotal;
-    final weeklyTotals = notifier.weeklyTotals;
+    final categoryTotals = notifier.categoryTotalsForMonth(selectedMonth);
+    final thisMonthTotal = notifier.totalForMonth(selectedMonth);
+    final weeklyTotals = notifier.weeklyTotalsForMonth(selectedMonth);
     final expenses = ref.watch(expenseProvider);
-
+    final monthExpenses = notifier.expensesForMonth(selectedMonth);
     final isEmpty = categoryTotals.isEmpty;
 
     return Scaffold(
@@ -36,6 +39,13 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: const MonthNavigator(),
+          ),
+        ),
       ),
       body: isEmpty
           ? _buildEmpty()
@@ -244,7 +254,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   // ── Top spending ──
                   _sectionTitle('Top Expenses This Month'),
                   const SizedBox(height: 12),
-                  ...expenses
+                  ...monthExpenses
                       .where((e) {
                         final now = DateTime.now();
                         return e.date.month == now.month &&
@@ -388,7 +398,6 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         return AppColors.education;
       default:
         return AppColors.other;
-        
     }
   }
 }

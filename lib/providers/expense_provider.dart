@@ -29,11 +29,11 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     _loadExpenses();
   }
 
- void deleteAll() {
+  void deleteAll() {
     _box.clear();
     _loadExpenses();
   }
-  
+
   double get totalSpent {
     return state.fold(0.0, (sum, e) => sum + e.amount);
   }
@@ -117,9 +117,36 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     return dayTotals.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
 
- 
-
   int get totalTransactionsThisMonth => thisMonthExpenses.length;
+
+  // ── Selected month helpers ──
+  List<Expense> expensesForMonth(DateTime month) {
+    return state
+        .where((e) => e.date.month == month.month && e.date.year == month.year)
+        .toList();
+  }
+
+  double totalForMonth(DateTime month) {
+    return expensesForMonth(month).fold(0.0, (sum, e) => sum + e.amount);
+  }
+
+  Map<String, double> categoryTotalsForMonth(DateTime month) {
+    final Map<String, double> totals = {};
+    for (final e in expensesForMonth(month)) {
+      totals[e.category] = (totals[e.category] ?? 0) + e.amount;
+    }
+    return totals;
+  }
+
+  Map<int, double> weeklyTotalsForMonth(DateTime month) {
+    final Map<int, double> totals = {1: 0, 2: 0, 3: 0, 4: 0};
+    for (final e in expensesForMonth(month)) {
+      final week = ((e.date.day - 1) / 7).floor() + 1;
+      final clampedWeek = week.clamp(1, 4);
+      totals[clampedWeek] = (totals[clampedWeek] ?? 0) + e.amount;
+    }
+    return totals;
+  }
 }
 
 final expenseProvider = StateNotifierProvider<ExpenseNotifier, List<Expense>>((
