@@ -23,7 +23,6 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     final categoryTotals = notifier.categoryTotalsForMonth(selectedMonth);
     final thisMonthTotal = notifier.totalForMonth(selectedMonth);
     final weeklyTotals = notifier.weeklyTotalsForMonth(selectedMonth);
-    final expenses = ref.watch(expenseProvider);
     final monthExpenses = notifier.expensesForMonth(selectedMonth);
     final isEmpty = categoryTotals.isEmpty;
 
